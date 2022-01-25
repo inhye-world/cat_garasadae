@@ -30,7 +30,14 @@
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     <script type="text/babel">
-      console.log("야옹");
+      const jsonLocalStorage = {
+      setItem: (key, value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+      },
+      getItem: (key) => {
+      return JSON.parse(localStorage.getItem(key));
+      },
+};
 
       const Title = (props) => {
         return (
@@ -38,11 +45,42 @@
         )
       };
 
-      function CatScript({handleFormSubmit}){
+      const CatScript = ({updateMainCat}) => {
+        const includesHangul = (text) => /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/i.test(text);
+        const [value, setValue] = React.useState('');
+        const [errorMessage, setErrorMessage] = React.useState('');
+
+        function handleInputChange(e){
+          const userValue = e.target.value;
+          setErrorMessage('');
+          if(includesHangul(userValue)){
+            setErrorMessage('한글은 입력할 수 없습니다.');
+            return;
+          }
+          setValue(userValue.toUpperCase());
+        }
+
+        function handleFormSubmit(e){
+          e.preventDefault();
+          setErrorMessage('');
+          if(value === ''){
+            setErrorMessage('빈 값으로 만들 수 없습니다.');
+          }
+
+          updateMainCat();
+        }
+
         return (
           <form onSubmit={handleFormSubmit}>
-            <input type="text" name="name" placeholder="영어 대사를 입력해주세요" />
+            <input 
+              type="text"
+              name="name"
+              placeholder="영어 대사를 입력해주세요"
+              value={value}
+              onChange={handleInputChange}
+            />
             <button type="submit">생성</button>
+            <p style={{color:"red"}}>{errorMessage}</p>
           </form>
         )
       };
@@ -55,35 +93,24 @@
         )
       }
 
-      function Favorites(){
-        const CAT1 = "https://cataas.com/cat/60b73094e04e18001194a309/says/react";
-        const CAT2 = "https://cataas.com//cat/5e9970351b7a400011744233/says/inflearn";
-        const CAT3 = "https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript";
-
-        const cats = [CAT1, CAT2];
-
+      function Favorites({favorites}){
         return (
           <ul className="favorites">
-            {cats.map(cat => <CatItem img={cat} key={cat}/>)}
+            {favorites.map((cat) => (
+              <CatItem img={cat} key={cat}/>
+            ))}
             
-            <CatItem img="https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript" />
         </ul>
         )
       }
 
-      const MainCard = ({img}) => {
-        function handleHeartClick(){
-          console.log("하트 눌렀음");
-        }
-
-        function handleHeartMouseOver(){
-          console.log("하트 스침");
-        }
+      const MainCard = ({img, onHeartClick}) => {
+        
 
         return(
           <div className="main-card">
           <img src={img} alt="고양이" width="400"/>
-          <button onClick={handleHeartClick} onMouseOver={handleHeartMouseOver}>🤍</button>
+          <button onClick={onHeartClick}>🤍</button>
         </div>
         )
       }
@@ -93,24 +120,35 @@
         const CAT2 = "https://cataas.com//cat/5e9970351b7a400011744233/says/inflearn";
         const CAT3 = "https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript";
 
-        const [counter, setCounter] = React.useState(1);
+        const [counter, setCounter] = React.useState(
+          jsonLocalStorage.getItem('counter')
+        );
         const [imgUrl, setImgUrl] = React.useState(CAT1);
+        const [favorites, setFavorites] = React.useState(
+          jsonLocalStorage.getItem('favorites') || []
+        );// 앞의 내용이 없으면 뒤의 내용을 써라
 
-        function handleFormSubmit(event){
-          event.preventDefault();
-          console.log("폼 전송됨");
-          setCounter(counter + 1);
+        function updateMainCat(){
           setImgUrl(CAT2);
+          const nextCounter = counter + 1;
+          setCounter(nextCounter);
+          jsonLocalStorage.setItem('counter', nextCounter);
+        }
+
+        function handleHeartClick(){
+          const nextFavorites = [...favorites, imgUrl]
+          setFavorites(nextFavorites);
+          jsonLocalStorage.setItem('favorites', nextFavorites)
         }
 
         return(
           <div>
           <Title> {counter}번째 고양이 가라사대</Title>
-          <CatScript handleFormSubmit={handleFormSubmit}/>
-          <MainCard img={imgUrl} />
-          <Favorites />
+          <CatScript updateMainCat={updateMainCat}/>
+          <MainCard img={imgUrl} onHeartClick={handleHeartClick}/>
+          <Favorites favorites={favorites}/>
         </div>
-        )
+        )//props으로 넘길 땐 handle이 아닌 on을 쓴다.
       } 
 
       const 여기다가그려 = document.querySelector('#app');
