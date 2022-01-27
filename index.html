@@ -162,7 +162,8 @@
           setImgUrl(newCat);
           
           //setCounter(nextCounter);
-          setCounter((prev) => {
+          setCounter((prev) => {//counter랑 setcounter는 서로 바라보는 곳이 달라서 빠르게 연타하면 미스매치가 일어난다
+            //그래서 아예 이전 값을 넘겨줘서 직접적으로 +1을 하도록 수정한다.
             const nextCounter = prev + 1;
             jsonLocalStorage.setItem('counter', nextCounter);
             return nextCounter;
