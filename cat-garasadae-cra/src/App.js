@@ -97,7 +97,7 @@ const jsonLocalStorage = {
     const CAT2 = "https://cataas.com//cat/5e9970351b7a400011744233/says/inflearn";
     const CAT3 = "https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript";
 
-    const defaultTitle = "고양이 가라사대";
+    const defaultTitle = "고양이 가라사대!";
 
     const [counter, setCounter] = React.useState(() => {
       return jsonLocalStorage.getItem('counter')
